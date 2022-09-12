@@ -76,7 +76,7 @@ export default function MainScreen() {
                         <h3>Não há registros de entrada ou saída</h3>
                     )}
     
-                    <FooterRecordsTable>
+                    <FooterRecordsTable listLength={transactionsList.length}>
                         <h2>SALDO</h2>
                         <Amount sum={sum}>{(sum/100).toFixed(2).toString().replace(".", ",")}</Amount>
                     </FooterRecordsTable>
@@ -102,9 +102,9 @@ export default function MainScreen() {
 
 const Container = styled.div`
     color: #FFFFFF;
+    display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    height: 100vh;
     padding: 25px;
 `;
 
@@ -127,25 +127,11 @@ const RecordsTable = styled.div`
     flex-direction: column;
     justify-content: ${props => props.listLength > 0 ? "flex-start" : "center"};
     align-items: ${props => props.listLength > 0 ? "space-between" : "center"};
-    height: 446px;
+    height: 100%;
     padding: 23px 12px 10px 12px;
     margin-bottom: 13px;
     border-radius: 5px;
     position: relative;
-    overflow-y: scroll;
-
-    ::-webkit-scrollbar {
-        width: 5px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background-color: #DB84FD;
-        border-radius: 5px;
-    }
 
     h2 {
         color: #000000;
@@ -170,6 +156,7 @@ const RecordsTable = styled.div`
 const Footer = styled.div`
     display: flex;
     justify-content: space-between;
+    align-items: flex-end;
 `;
 
 const Button = styled.div`
@@ -201,10 +188,9 @@ const Button = styled.div`
 const FooterRecordsTable = styled.div`
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    width: 95%;
     position: absolute;
-    padding-bottom: 10px;
+    width: 100%;
+    padding: ${props => props.listLength > 0 ? "0 22px 10px 0" : "0 12px 10px 12px"};
     bottom: 0;
 `;
 
