@@ -1,64 +1,97 @@
-import { Link } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { getTransactions, postLogOut } from "../services/myWalletService";
 import Records from "./Records";
 import styled from "styled-components";
 import exitIcon from "../assets/img/exit-icon.svg";
 import addIcon from "../assets/img/plus-circle-outlined.svg"
 import removeIcon from "../assets/img/minus-circle-outlined.svg"
-
-const records = [
-    {id: 1, date: "30/11", description: "Almoço mãe", amount: "39,90", type: "output"}, 
-    {id: 2, date: "27/11", description: "Mercado", amount: "542,54", type: "output"}, 
-    {id: 3, date: "26/11", description: "Compras churrasco", amount: "67,60", type: "output"}, 
-    {id: 4, date: "20/11", description: "Empréstimo Maria", amount: "500,00", type: "input"}, 
-    {id: 5, date: "15/11", description: "Salário", amount: "3000,00", type: "input"}
-];
+import UserContext from "../contexts/UserContext";
 
 export default function MainScreen() {
+    const { userName, token, setToken, setTransactionType } = useContext(UserContext);
+    const [reload] = useState(false);
+    const [transactionsList, setTransactionsList] = useState([]);
+    const navigate = useNavigate();
+    let sum = 0;
+    
+    useEffect(() => {
+        getTransactions(token)
+            .then(resp => {
+                setTransactionsList(resp.data);
+            })
+            .catch(resp => {
+                console.error(resp);
+            });
+    }, [reload]);
+
+    transactionsList.forEach(value => {
+        if(value.type === "credit") {
+            return sum += value.amount;
+        } else {
+            return sum -= value.amount;
+        }
+    });
+
+    function logout() {
+        const signOut = window.confirm("Confirma que deseja sair?");
+
+        if(signOut) {
+            postLogOut(token)
+                .then(resp => {
+                    setToken("");
+                    navigate("/");
+                })
+                .catch(resp => {
+                    console.error(resp);
+                });
+        }
+    }
+
+    function newTransaction(type) {
+        setTransactionType(type);
+        navigate("/new-transaction");
+    }
 
     return (
         <Container>
             <Header>
-                <h1>Olá, Fulano</h1>
-                <img src={exitIcon} alt="Exit Icon" />
+                <h1>Olá, {userName}</h1>
+                <img src={exitIcon} onClick={logout} alt="Exit Icon" />
             </Header>
 
-            <RecordsTable listLength={records.length}>
-                {records.length > 0 ? (
-                    records.map((record, index) => (
+            <RecordsTable listLength={transactionsList.length}>
+                {transactionsList.length > 0 ? (
+                    transactionsList.map((record, index) => (
                         <Records
-                            key={index}
-                            id={record.id} 
+                            key={index} 
                             date={record.date} 
                             description={record.description} 
                             amount={record.amount} 
                             type={record.type} 
                         />
+
                     ))
                 ) : (
                     <h3>Não há registros de entrada ou saída</h3>
                 )}
 
-                <span>
+                <FooterRecordsTable>
                     <h2>SALDO</h2>
-                    <Amount>{2849.96}</Amount>
-                </span>
+                    <Amount sum={sum}>{sum}</Amount>
+                </FooterRecordsTable>
             </RecordsTable>
 
             <Footer>
-                <Link to="/new-input">
-                    <Button>
-                        <img src={addIcon} alt="add-icon" />
-                        <p>Nova entrada</p>
-                    </Button>
-                </Link>
+                <Button onClick={() => newTransaction("credit")}>
+                    <img src={addIcon} alt="add-icon" />
+                    <p>Nova entrada</p>
+                </Button>
 
-                <Link to="/new-output">
-                    <Button>
-                        <img src={removeIcon} alt="remove-icon" />
-                        <p>Nova saída</p>
-                    </Button>
-                </Link>
+                <Button onClick={() => newTransaction("debit")}>
+                    <img src={removeIcon} alt="remove-icon" />
+                    <p>Nova saída</p>
+                </Button>
             </Footer>
         </Container>
     );
@@ -95,6 +128,7 @@ const RecordsTable = styled.div`
     padding: 23px 12px 10px 12px;
     margin-bottom: 13px;
     border-radius: 5px;
+    position: relative;
     overflow-y: scroll;
 
     ::-webkit-scrollbar {
@@ -102,7 +136,7 @@ const RecordsTable = styled.div`
     }
     
     ::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05)
+        background: rgba(0, 0, 0, 0.05);
     }
     
     ::-webkit-scrollbar-thumb {
@@ -127,7 +161,6 @@ const RecordsTable = styled.div`
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-        height: 100%;
     }
 `;
 
@@ -162,6 +195,16 @@ const Button = styled.div`
     }
 `;
 
+const FooterRecordsTable = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 95%;
+    position: absolute;
+    padding-bottom: 10px;
+    bottom: 0;
+`;
+
 const Amount = styled.div`
-    color: #03AC00;
+    color: ${props => props.sum > 0 ? "#03AC00" : "#C70000"};
 `;

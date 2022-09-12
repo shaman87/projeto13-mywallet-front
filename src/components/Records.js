@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-export default function Records({ id, date, description, amount, type }) {
+export default function Records({ date, description, amount, type }) {
     return (
         <Record>
             <div>
@@ -30,5 +30,5 @@ const Date = styled.div`
 `;
 
 const Amount = styled.div`
-    color: ${props => props.type === "input" ? "#03AC00" : "#C70000"};
+    color: ${props => props.type === "credit" ? "#03AC00" : "#C70000"};
 `;

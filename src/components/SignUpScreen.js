@@ -1,23 +1,92 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { postSignUp } from "../services/myWalletService";
 import styled from "styled-components";
 
 export default function SignUpScreen() {
-    function handleForm() {
-        return console.log("teste");
+    const navigate = useNavigate();
+    const [disabled, setDisabled] = useState(false);
+    const [form, setForm] = useState({
+        name: "", 
+        email: "", 
+        password: "", 
+        confirmPassword: ""
+    });
+
+    function handleForm(event) {
+        setForm({
+            ...form, 
+            [event.target.name]: event.target.value
+        });
     }
     
+    function signUp(event) {
+        event.preventDefault();
+
+        setDisabled(true);
+
+        postSignUp(form)
+            .then(resp => {
+                setDisabled(false);
+                alert("usuário criado com sucesso!");
+                navigate("/");
+            })
+            .catch(resp => {
+                setDisabled(false);
+                console.error(resp);
+                if(resp.response.status === 409) return alert("E-mail já cadastrado!");
+                if(resp.response.status === 422) return alert("Confirme a senha corretamente");
+            });
+    }
+
     return (
         <Container>
             <Title>
                 <h1>MyWallet</h1>
             </Title>
 
-            <Form onSubmit={handleForm}>
-                <input type="text" placeholder="Nome" />
-                <input type="email" placeholder="E-mail" />
-                <input type="password" placeholder="Senha" />
-                <input type="password" placeholder="Confirme a senha" />
-                <Button type="submit">Cadastrar</Button>
+            <Form onSubmit={signUp}>
+                <input 
+                    type="text" 
+                    name="name" 
+                    value={form.name} 
+                    placeholder="Nome" 
+                    onChange={handleForm} 
+                    disabled={disabled} 
+                    required 
+                />
+
+                <input 
+                    type="email" 
+                    name="email" 
+                    value={form.email} 
+                    placeholder="E-mail" 
+                    onChange={handleForm} 
+                    disabled={disabled} 
+                    required 
+                />
+
+                <input 
+                    type="password" 
+                    name="password" 
+                    value={form.password} 
+                    placeholder="Senha" 
+                    onChange={handleForm} 
+                    disabled={disabled} 
+                    required 
+                />
+
+                <input 
+                    type="password" 
+                    name="confirmPassword" 
+                    value={form.confirmPassword} 
+                    placeholder="Confirme a senha" 
+                    onChange={handleForm} 
+                    disabled={disabled} 
+                    required 
+                />
+                
+                <Button type="submit" disabled={disabled}>Cadastrar</Button>
             </Form>
 
             <Link to={"/"}>

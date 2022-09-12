@@ -1,109 +1,102 @@
 import { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { postLogIn } from "../services/myWalletService";
+import { useNavigate } from "react-router-dom";
+import { postTransactions } from "../services/myWalletService";
 import styled from "styled-components";
 import UserContext from "../contexts/UserContext";
 
-export default function LoginScreen() {
+export default function NewInput() {
     const navigate = useNavigate();
-    const { setToken, setUserName } = useContext(UserContext);
+    const { transactionType, token } = useContext(UserContext);
     const [disabled, setDisabled] = useState(false);
     const [form, setForm] = useState({
-        email: "", 
-        password: ""
+        amount: "", 
+        description: "", 
+        type: transactionType
     });
 
     function handleForm(event) {
         setForm({
             ...form, 
-            [event.target.name]: event.target.value 
+            [event.target.name]: event.target.value
         });
-    }
-    
-    function login(event) {
+    }    
+
+    function newTransaction(event) {
         event.preventDefault();
 
         setDisabled(true);
 
-        postLogIn(form)
+        postTransactions(form, token)
             .then(resp => {
                 setDisabled(false);
-                setToken(resp.data.token);
-                setUserName(resp.data.name)
                 navigate("/main-screen");
             })
             .catch(resp => {
                 setDisabled(false);
                 console.error(resp);
-                alert("Senha ou e-mail incorretos!");
             });
     }
 
     return (
         <Container>
-            <Title>
-                <h1>MyWallet</h1>
-            </Title>
+            <Header>
+                {transactionType === "credit" ? (<h1>Nova entrada</h1>) : (<h1>Nova saída</h1>)}
+            </Header>
 
-            <Form onSubmit={login}>
+            <Form onSubmit={newTransaction}>
                 <input 
-                    type="email" 
-                    name="email" 
-                    value={form.email} 
-                    placeholder="E-mail" 
-                    onChange={handleForm} 
-                    disabled={disabled}
-                    required 
-                />
-
-                <input 
-                    type="password" 
-                    name="password" 
-                    value={form.password} 
-                    placeholder="Senha" 
+                    type="text" 
+                    name="amount" 
+                    value={form.amount} 
+                    placeholder="Valor" 
                     onChange={handleForm} 
                     disabled={disabled} 
                     required 
                 />
-                
-                <Button type="submit" disabled={disabled}>Entrar</Button>
-            </Form>
 
-            <Link to={"/sign-up"}>
-                <p>Primeira vez? Cadastre-se!</p>
-            </Link>
+                <input 
+                    type="text" 
+                    name="description" 
+                    value={form.description} 
+                    placeholder="Descrição" 
+                    onChange={handleForm} 
+                    disabled={disabled} 
+                    required 
+                />
+
+                <Button type="submit">
+                    {transactionType === "credit" ? ("Salvar entrada") : ("Salvar saída")}
+                </Button>
+            </Form>
         </Container>
     );
 }
 
 const Container = styled.div`
     color: #FFFFFF;
-    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 25px;
-    margin: 15vh 0 0 0;
-
-    p {
-        font-size: 15px;
-        font-weight: 700;
-    }
 `;
 
-const Title = styled.div`
-    font-family: 'Saira Stencil One', cursive;
-    font-size: 32px;
+const Header = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 25px;
 `;
 
 const Form = styled.form`
     display: flex;
     flex-direction: column;
-    width: 100%;
     margin: 36px 0;
 
     input {
         font-size: 20px;
+        width: 326px;
         height: 58px;
         margin-bottom: 13px;
         padding-left: 15px;
@@ -125,6 +118,7 @@ const Button = styled.button`
     color: #FFFFFF;
     font-size: 20px;
     font-weight: 700;
+    width: 326px;
     height: 46px;
     border: none;
     border-radius: 5px;
