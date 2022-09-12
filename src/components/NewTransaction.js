@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { postTransactions } from "../services/myWalletService";
 import styled from "styled-components";
 import UserContext from "../contexts/UserContext";
@@ -23,7 +23,7 @@ export default function NewInput() {
 
     function newTransaction(event) {
         event.preventDefault();
-
+        form.amount = form.amount.replace(",", ".");
         setDisabled(true);
 
         postTransactions(form, token)
@@ -37,39 +37,43 @@ export default function NewInput() {
             });
     }
 
-    return (
-        <Container>
-            <Header>
-                {transactionType === "credit" ? (<h1>Nova entrada</h1>) : (<h1>Nova saída</h1>)}
-            </Header>
-
-            <Form onSubmit={newTransaction}>
-                <input 
-                    type="text" 
-                    name="amount" 
-                    value={form.amount} 
-                    placeholder="Valor" 
-                    onChange={handleForm} 
-                    disabled={disabled} 
-                    required 
-                />
-
-                <input 
-                    type="text" 
-                    name="description" 
-                    value={form.description} 
-                    placeholder="Descrição" 
-                    onChange={handleForm} 
-                    disabled={disabled} 
-                    required 
-                />
-
-                <Button type="submit">
-                    {transactionType === "credit" ? ("Salvar entrada") : ("Salvar saída")}
-                </Button>
-            </Form>
-        </Container>
-    );
+    if(token) {
+        return (
+            <Container>
+                <Header>
+                    {transactionType === "credit" ? (<h1>Nova entrada</h1>) : (<h1>Nova saída</h1>)}
+                </Header>
+    
+                <Form onSubmit={newTransaction}>
+                    <input 
+                        type="text" 
+                        name="amount" 
+                        value={form.amount} 
+                        placeholder="Valor" 
+                        onChange={handleForm} 
+                        disabled={disabled} 
+                        required 
+                    />
+    
+                    <input 
+                        type="text" 
+                        name="description" 
+                        value={form.description} 
+                        placeholder="Descrição" 
+                        onChange={handleForm} 
+                        disabled={disabled} 
+                        required 
+                    />
+    
+                    <Button type="submit">
+                        {transactionType === "credit" ? ("Salvar entrada") : ("Salvar saída")}
+                    </Button>
+                </Form>
+            </Container>
+        );
+    } else {
+        return <Navigate to={"/"} />
+    }
 }
 
 const Container = styled.div`
@@ -92,11 +96,11 @@ const Header = styled.div`
 const Form = styled.form`
     display: flex;
     flex-direction: column;
+    width: 100%;
     margin: 36px 0;
 
     input {
         font-size: 20px;
-        width: 326px;
         height: 58px;
         margin-bottom: 13px;
         padding-left: 15px;
@@ -118,7 +122,6 @@ const Button = styled.button`
     color: #FFFFFF;
     font-size: 20px;
     font-weight: 700;
-    width: 326px;
     height: 46px;
     border: none;
     border-radius: 5px;

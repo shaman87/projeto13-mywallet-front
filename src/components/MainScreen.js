@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { getTransactions, postLogOut } from "../services/myWalletService";
 import Records from "./Records";
@@ -10,11 +10,10 @@ import UserContext from "../contexts/UserContext";
 
 export default function MainScreen() {
     const { userName, token, setToken, setTransactionType } = useContext(UserContext);
-    const [reload] = useState(false);
     const [transactionsList, setTransactionsList] = useState([]);
     const navigate = useNavigate();
     let sum = 0;
-    
+
     useEffect(() => {
         getTransactions(token)
             .then(resp => {
@@ -23,13 +22,13 @@ export default function MainScreen() {
             .catch(resp => {
                 console.error(resp);
             });
-    }, [reload]);
+    }, []);
 
     transactionsList.forEach(value => {
         if(value.type === "credit") {
-            return sum += value.amount;
+            return sum += (100 * value.amount);
         } else {
-            return sum -= value.amount;
+            return sum -= (100 * value.amount);
         }
     });
 
@@ -53,48 +52,52 @@ export default function MainScreen() {
         navigate("/new-transaction");
     }
 
-    return (
-        <Container>
-            <Header>
-                <h1>Olá, {userName}</h1>
-                <img src={exitIcon} onClick={logout} alt="Exit Icon" />
-            </Header>
-
-            <RecordsTable listLength={transactionsList.length}>
-                {transactionsList.length > 0 ? (
-                    transactionsList.map((record, index) => (
-                        <Records
-                            key={index} 
-                            date={record.date} 
-                            description={record.description} 
-                            amount={record.amount} 
-                            type={record.type} 
-                        />
-
-                    ))
-                ) : (
-                    <h3>Não há registros de entrada ou saída</h3>
-                )}
-
-                <FooterRecordsTable>
-                    <h2>SALDO</h2>
-                    <Amount sum={sum}>{sum}</Amount>
-                </FooterRecordsTable>
-            </RecordsTable>
-
-            <Footer>
-                <Button onClick={() => newTransaction("credit")}>
-                    <img src={addIcon} alt="add-icon" />
-                    <p>Nova entrada</p>
-                </Button>
-
-                <Button onClick={() => newTransaction("debit")}>
-                    <img src={removeIcon} alt="remove-icon" />
-                    <p>Nova saída</p>
-                </Button>
-            </Footer>
-        </Container>
-    );
+    if(token) {
+        return (
+            <Container>
+                <Header>
+                    <h1>Olá, {userName}</h1>
+                    <img src={exitIcon} onClick={logout} alt="Exit Icon" />
+                </Header>
+    
+                <RecordsTable listLength={transactionsList.length}>
+                    {transactionsList.length > 0 ? (
+                        transactionsList.map((record, index) => (
+                            <Records
+                                key={index} 
+                                date={record.date} 
+                                description={record.description} 
+                                amount={record.amount} 
+                                type={record.type} 
+                            />
+    
+                        ))
+                    ) : (
+                        <h3>Não há registros de entrada ou saída</h3>
+                    )}
+    
+                    <FooterRecordsTable>
+                        <h2>SALDO</h2>
+                        <Amount sum={sum}>{(sum/100).toFixed(2).toString().replace(".", ",")}</Amount>
+                    </FooterRecordsTable>
+                </RecordsTable>
+    
+                <Footer>
+                    <Button onClick={() => newTransaction("credit")}>
+                        <img src={addIcon} alt="add-icon" />
+                        <p>Nova entrada</p>
+                    </Button>
+    
+                    <Button onClick={() => newTransaction("debit")}>
+                        <img src={removeIcon} alt="remove-icon" />
+                        <p>Nova saída</p>
+                    </Button>
+                </Footer>
+            </Container>
+        );
+    } else {
+        return <Navigate to="/" />
+    }
 }
 
 const Container = styled.div`

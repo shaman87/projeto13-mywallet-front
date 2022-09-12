@@ -7,7 +7,7 @@ export default function Records({ date, description, amount, type }) {
                 <Date>{date}</Date>
                 <div>{description}</div>
             </div>
-            <Amount type={type}>{amount}</Amount>
+            <Amount type={type}>{amount.replace(".", ",")}</Amount>
         </Record>
     );
 }
